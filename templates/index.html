@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Tarife - Recipe Generator</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css"
+    integrity="sha512-+4zCK9k+qNFUR5X+cKL9EIR+ZOhtIloNl9GIKS57V1MyNsYpYcUrUeQc9vNfzsWfV28IaLL3i96P9sdNyeRssA=="
+    crossorigin="anonymous" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='round_logo.png') }}">
+</head>
+
+<body>
+  <div class="container">
+    <div class="meal-search">
+      <form id="generate-form" action="/generate_recipe" method="POST">
+        <input type="text" class="search-control" placeholder="Enter an ingredient" id="search-input"
+          name="search-input">
+        <button type="submit" class="search-btn btn" id="search-btn">
+          <i class="fas fa-search"></i>
+        </button>
+      </form>
+    </div>
+
+    <div class="meal-result">
+      <h2 class="result-title">Your Search Results</h2>
+      <div id="recipe-result" class="meal-card-container">
+        {% if recipes %}
+        {% for recipe in recipes %}
+        <div class="recipe-card">
+          <div class="meal-title">
+            <h4 class="meal-name sentence-case">{{ recipe.get('name', 'No Name') }}</h4>
+          </div>
+          <div class="meal-button">
+            <button class="btn full-recipe-btn" data-recipe='{{ recipe|tojson }}'>Full Recipe</button>
+          </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+ <script>
+  // Popup
+  function openPopup(recipeData) {
+    const popup = document.getElementById('fullRecipePopup');
+    const content = document.getElementById('fullRecipeContent');
+    const recipe = JSON.parse(recipeData);
+
+    function convertIngredientsToDynamicList(ingredients) {
+      return ingredients
+        .replace(/^\s+|\s+$/g, '')
+        .replace(/['\[\]]/g, '')
+        .split(', ')
+        .map(ingredient => `<li>- ${ingredient}</li>`)
+        .join('');
+    }
+
+    function convertStepsToDynamicList(steps) {
+      return steps
+        .replace(/^\s+|\s+$/g, '')
+        .replace(/['\[\]]/g, '')
+        .split(', ')
+        .map((step, index) => `<li> <b> ${index + 1}.</b> ${step} </li>`)
+        .join('');
+    }
+
+    const ingredientsList = convertIngredientsToDynamicList(recipe.ingredients);
+    const stepsList = convertStepsToDynamicList(recipe.steps);
+
+    const htmlContent = `
+      <div class="popup-design">
+        <div class="meal-title">
+          <h2 class="meal-name sentence-case" style="text-align: center;">${recipe.name}</h2>
+        </div>
+
+        <div class="meal-tag">
+          <h3>Ingredients:</h3>
+          <div class="result-ingredients">
+            <ul>${ingredientsList}</ul>
+          </div>
+        </div>
+
+        <div class="meal-tag">
+          <h3>Steps:</h3>
+          <div class="result-ingredients">
+            <ul>${stepsList}</ul>
+          </div>
+        </div>
+      </div>
+    `;
+
+    content.innerHTML = htmlContent;
+    popup.style.display = 'block';
+  }
+
+  function closePopup() {
+    const popup = document.getElementById('fullRecipePopup');
+    popup.style.display = 'none';
+  }
+
+  const fullRecipeButtons = document.querySelectorAll('.full-recipe-btn');
+  fullRecipeButtons.forEach(button => {
+    button.addEventListener('click', function (event) {
+      event.preventDefault();
+      const recipeData = this.getAttribute('data-recipe');
+      openPopup(recipeData);
+    });
+  });
+
+  // AJAX request for recipe generation
+  document.getElementById('generate-form').addEventListener('submit', function (event) {
+    event.preventDefault();
+    loadRecipes(1);
+  });
+
+  function loadRecipes(page) {
+    var searchInput = document.getElementById('search-input').value;
+    // Your AJAX request here...
+  }
+</script>
+
+
+</body>
+
+</html>
